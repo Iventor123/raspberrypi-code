@@ -1,4 +1,4 @@
-import tkinter as tk
+-+import tkinter as tk
 from tkinter import font, messagebox
 class LED():
     def __init__(self,int_):
@@ -18,7 +18,7 @@ def on_button_(event=None): #ON
         return
     led.on()
     print("manual: led turned on >>>")
-    ledstatus_label.configure(fg="green",text="MANUAL: ON")
+    ledstatus_label.configure(fg="green",text="MANUAL: OFF")
 def off_button_(event=None): #OFF
     if loop.get():
         messagebox.showerror("Loop","Loop is turned on!",detail='Turn off loop for manual mode.')
@@ -35,7 +35,8 @@ def loop_toggle(event=None):
         ledstatus_label.configure(fg="light blue", text="LOOP: OFF")
         wait = loopwait.get() * 100
         app.after(wait, loop_on)
-
+    else:
+        off_button_()
 
 def loop_on():
     if loop.get():
