@@ -1,65 +1,155 @@
 import tkinter as tk
 from tkinter import font, messagebox
+
 class LED():
-    def __init__(self,int_):
+    def __init__(self, int_):
         pass
     def on(self):
         pass
     def off(self):
-         pass
+        pass
+
 led = LED(17)
 app = tk.Tk()
 app.title("LED app")
-app.geometry("400x250")
+app.geometry("400x350")
 
-def on_button_(event=None): #ON
+timer_running = False
+timer_id = None
+
+def on_button_(event=None):
     if loop.get():
-        messagebox.showerror("Loop","Loop is turned on!",detail='Turn off loop for manual mode.')
+        messagebox.showerror("Loop", "Loop is turned on!", detail='Turn off loop for manual mode.')
         return
     led.on()
     print("manual: led turned on >>>")
-    ledstatus_label.configure(fg="green",text="MANUAL: ON")
-def off_button_(event=None): #OFF
+    ledstatus_label.configure(fg="green", text="ON")
+
+def off_button_(event=None):
     if loop.get():
-        messagebox.showerror("Loop","Loop is turned on!",detail='Turn off loop for manual mode.')
+        messagebox.showerror("Loop", "Loop is turned on!", detail='Turn off loop for manual mode.')
         return
     led.off()
     print("manual: led turned off <<<")
-    ledstatus_label.configure(fg="red",text="MANUAL: OFF")
-
+    ledstatus_label.configure(fg="red", text="OFF")
 
 def loop_toggle(event=None):
     if loop.get():
         led.off()
         print("loop: led turned off <<<")
         ledstatus_label.configure(fg="light blue", text="LOOP: OFF")
-        wait = loopwait.get() * 100
+        wait = onloopwait.get() * 100
         app.after(wait, loop_on)
-    else:
-        off_button_()
 
 def loop_on():
     if loop.get():
         led.on()
         print("loop: led turned on >>>")
         ledstatus_label.configure(fg="blue", text="LOOP: ON")
-        wait = loopwait.get() * 100
+        wait = offloopwait.get() * 100
         app.after(wait, loop_toggle)
+    else:
+        off_button_()
 
+def start_timer():
+    global timer_running
+    if not timer_running:
+        seconds = timervalue.get()
+        if loop.get():
+            messagebox.showerror("Loop", "Loop is turned on!", detail="Turn off loop before using timer.")
+            return
+        if seconds <= 0:
+            return
+        timer_running = True
+        disable_controls()
+        timerstart.configure(text="Stop Timer")
+        led.on()
+        print("timer: led turned on >>>")
+        ledstatus_label.configure(fg="orange", text="TIMER")
+        countdown(seconds)
+    else:
+        stop_timer()
+
+def countdown(seconds_left):
+    global timer_id
+    if not timer_running:
+        return
+    if seconds_left <= 0:
+        stop_timer()
+    else:
+        timerlabel.configure(text=f"Time Left: {seconds_left}s")
+        timer_id = app.after(1000, lambda: countdown(seconds_left - 1))
+
+def stop_timer():
+    global timer_running, timer_id
+    timer_running = False
+    if timer_id:
+        app.after_cancel(timer_id)
+        timer_id = None
+    led.off()
+    print("timer: led turned off <<<")
+    ledstatus_label.configure(fg="red", text="OFF")
+    timerlabel.configure(text="No timer set.")
+    enable_controls()
+    timerstart.configure(text="Start Timer")
+
+def disable_controls():
+    on_button.configure(state="disabled")
+    off_button.configure(state="disabled")
+    loopbutton.configure(state="disabled")
+    onscale.configure(state="disabled")
+    timerscale.configure(state="disabled")
+
+def enable_controls():
+    on_button.configure(state="normal")
+    off_button.configure(state="normal")
+    loopbutton.configure(state="normal")
+    onscale.configure(state="normal")
+    timerscale.configure(state="normal")
+def sync_loopvars(event=None):
+    on = onloopwait.get()
+    off = offloopwait.get()
+    average = (on+off)//2
+    onloopwait.set(average)
+    offloopwait.set(average)
 loop = tk.BooleanVar(value=False)
-loopwait = tk.IntVar(value=10)
-ledstatus_label = tk.Label(text='',fg='red',font=font.Font(size=30))
-off_button_()
-ledstatus_label.pack(side='top',fill=tk.X)
-on_button = tk.Button(text='LED ON',command=on_button_)
-on_button.pack(side="top",pady=10)
-off_button = tk.Button(text='LED OFF',command=off_button_)
-off_button.pack(side="top",pady=10)
+onloopwait = tk.IntVar(value=10)
+offloopwait = tk.IntVar(value=20)
+timervalue = tk.IntVar(value=5)
+
+ledstatus_label = tk.Label(text='', fg='red', font=font.Font(size=30))
+on_button_()
+ledstatus_label.pack(side='top', fill=tk.X)
+buttonframe = tk.Frame(app)
+buttonframe.pack(side='top')
+on_button = tk.Button(buttonframe,text='LED ON', command=on_button_)
+on_button.pack(pady=10,side='left',padx=5)
+
+off_button = tk.Button(buttonframe,text='LED OFF', command=off_button_)
+off_button.pack(pady=10,side='right',padx=5)
+
 loopframe = tk.Frame(app)
 loopframe.pack()
-loopscale = tk.Scale(loopframe,orient=tk.HORIZONTAL,from_=10,to=50,showvalue=True,variable=loopwait)
-loopscale.pack(side='left')
-loopbutton = tk.Checkbutton(loopframe, command=loop_toggle, variable=loop)
-loopbutton.pack(side='right')
+loopframe1 = tk.Frame(loopframe)
+loopframe1.pack(side='left')
+loopframe2 = tk.Frame(loopframe)
+loopframe2.pack(side='right')
+onscale = tk.Scale(loopframe1, orient=tk.HORIZONTAL, from_=10, to=50, showvalue=True, variable=onloopwait,label='LED ON (1/10 s)',length=120)
+offscale = tk.Scale(loopframe1, orient=tk.HORIZONTAL, from_=10, to=50, showvalue=True, variable=offloopwait,label='LED OFF (1/10 s)',length=120)
+onscale.pack(side='right')
+offscale.pack(side='left')
+loopbutton = tk.Checkbutton(loopframe2, command=loop_toggle, variable=loop,text='Loop mode on')
+loopbutton.pack(side='top')
+syncbutton = tk.Button(loopframe2, text="SYNC", command=sync_loopvars)
+syncbutton.pack(side='bottom')
+
+timerframe = tk.Frame(app)
+timerframe.pack(pady=10)
+timerscale = tk.Scale(timerframe, from_=1, to=600, orient=tk.HORIZONTAL, label="Timer (s)", variable=timervalue,sliderlength=10)
+timerscale.pack(side="left")
+timerstart = tk.Button(timerframe, text="START", command=start_timer)
+timerstart.pack(side="left", padx=10)
+timerlabel = tk.Label(app, text="No timer set.", font=("Arial", 14))
+timerlabel.pack()
 
 app.mainloop()
