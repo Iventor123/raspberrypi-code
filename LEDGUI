@@ -48,7 +48,8 @@ def loop_on():
 
 loop = tk.BooleanVar(value=False)
 loopwait = tk.IntVar(value=10)
-ledstatus_label = tk.Label(text='OFF',fg='red',font=font.Font(size=30))
+ledstatus_label = tk.Label(text='',fg='red',font=font.Font(size=30))
+off_button_()
 ledstatus_label.pack(side='top',fill=tk.X)
 on_button = tk.Button(text='LED ON',command=on_button_)
 on_button.pack(side="top",pady=10)
