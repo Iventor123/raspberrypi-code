@@ -18,7 +18,7 @@ def on_button_(event=None): #ON
         return
     led.on()
     print("manual: led turned on >>>")
-    ledstatus_label.configure(fg="green",text="MANUAL: OFF")
+    ledstatus_label.configure(fg="green",text="MANUAL: ON")
 def off_button_(event=None): #OFF
     if loop.get():
         messagebox.showerror("Loop","Loop is turned on!",detail='Turn off loop for manual mode.')
